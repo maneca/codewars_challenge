@@ -5,6 +5,6 @@ import com.example.codewarschallenge.utils.AppResult
 
 interface ChallengesRepository {
 
-    suspend fun getAllCountries(): AppResult<List<CompletedChallenge>>
+    suspend fun getCompletedChallenges(page: Int): AppResult<List<CompletedChallenge>>
 
 }

@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">Codewars Challenge</string>
-    <string name="BASE_URL">https://www.codewars.com/api/v1</string>
+    <string name="BASE_URL">https://www.codewars.com/api/v1/</string>
     <string name="no_network_connectivity">You are not connected to a network</string>
+    <string name="error_title">Error</string>
+    <string name="dismiss_button">OK</string>
+    <string name="completed_at">Completed at:</string>
+    <string name="completed_lang">Completed languages: </string>
 </resources>

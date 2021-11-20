@@ -10,9 +10,9 @@ import org.koin.dsl.module
 
 val repositoryModule = module {
 
-    fun provideCountriesRepository(api: ChallengesApi, context: Context, dao: ChallengesDao): ChallengesRepository {
+    fun provideChallengesRepository(api: ChallengesApi, context: Context, dao: ChallengesDao): ChallengesRepository {
         return ChallengesRepositoryImp(api, context, dao)
     }
 
-    single { provideCountriesRepository(get(), androidContext(), get()) }
+    single { provideChallengesRepository(get(), androidContext(), get()) }
 }

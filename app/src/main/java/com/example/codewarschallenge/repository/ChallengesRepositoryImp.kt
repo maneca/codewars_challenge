@@ -19,7 +19,7 @@ class ChallengesRepositoryImp(
     private val dao : ChallengesDao
 ) : ChallengesRepository{
 
-    override suspend fun getAllCountries(): AppResult<List<CompletedChallenge>> {
+    override suspend fun getCompletedChallenges(page: Int): AppResult<List<CompletedChallenge>> {
         val dbValues = getCompletedChallengesFromDatabase()
 
         when {
@@ -30,13 +30,13 @@ class ChallengesRepositoryImp(
             isOnline(context) -> {
                 Log.d("CodewarsChallenge", "from network")
                 return try {
-                    val response = api.getCompletedChallenges()
+                    val response = api.getCompletedChallenges(page)
 
                     if (response.isSuccessful){
                         response.body()?.let {
-                            withContext(Dispatchers.IO) { dao.addCompletedChallenges(it)}
+                            withContext(Dispatchers.IO) { dao.addCompletedChallenges(it.data)}
                         }
-                        handleSuccess(response)
+                        AppResult.Success(response.body()!!.data)
                     } else{
                         handleApiError(response)
                     }
