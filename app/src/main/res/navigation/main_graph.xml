@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_graph"
+    app:startDestination="@id/completedChallengesFragment">
+
+    <fragment
+        android:id="@+id/completedChallengesFragment"
+        android:name="com.example.codewarschallenge.fragments.CompletedChallengesFragment"
+        android:label="CompletedChallengesFragment" >
+        <action
+            android:id="@+id/viewChallengeDetails"
+            app:destination="@id/challengeDetailsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/challengeDetailsFragment"
+        android:name="com.example.codewarschallenge.fragments.ChallengeDetailsFragment"
+        android:label="ChallengeDetailsFragment" />
+</navigation>
