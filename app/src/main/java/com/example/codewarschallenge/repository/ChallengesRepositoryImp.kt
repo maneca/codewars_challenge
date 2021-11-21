@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.codewarschallenge.api.ChallengesApi
 import com.example.codewarschallenge.db.dao.ChallengesDao
 import com.example.codewarschallenge.db.model.CompletedChallenge
+import com.example.codewarschallenge.utils.ApiErrorUtils
 import com.example.codewarschallenge.utils.AppResult
 import com.example.codewarschallenge.utils.NetworkManager.isOnline
 import com.example.codewarschallenge.utils.ResponseHandler.handleApiError
@@ -19,16 +20,16 @@ class ChallengesRepositoryImp(
     private val dao : ChallengesDao
 ) : ChallengesRepository{
 
-    override suspend fun getCompletedChallenges(page: Int): AppResult<List<CompletedChallenge>> {
+    override suspend fun getCompletedChallenges(page: Int, forceUpdate : Boolean): AppResult<List<CompletedChallenge>> {
         val dbValues = getCompletedChallengesFromDatabase()
 
         when {
-            dbValues.isNotEmpty() -> {
-                Log.d("CodewarsChallenge", "from db")
+            dbValues.isNotEmpty() && !forceUpdate -> {
+                Log.d("Codewars", "from db")
                 return AppResult.Success(dbValues)
             }
             isOnline(context) -> {
-                Log.d("CodewarsChallenge", "from network")
+                Log.d("Codewars", "from network")
                 return try {
                     val response = api.getCompletedChallenges(page)
 
@@ -38,7 +39,7 @@ class ChallengesRepositoryImp(
                         }
                         AppResult.Success(response.body()!!.data)
                     } else{
-                        handleApiError(response)
+                        AppResult.Error(Exception(ApiErrorUtils.parseError(response).message))
                     }
                 }catch (e: Exception) {
                     AppResult.Error(e)

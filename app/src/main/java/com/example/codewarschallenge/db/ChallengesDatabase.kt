@@ -9,7 +9,7 @@ import com.example.codewarschallenge.db.model.CompletedChallenge
 
 @Database(
     entities = [CompletedChallenge::class],
-    version = 2, exportSchema = false
+    version = 1, exportSchema = false
 )
 
 @TypeConverters(ListConverter::class)

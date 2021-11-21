@@ -2,6 +2,7 @@ package com.example.codewarschallenge.db.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.codewarschallenge.db.model.CompletedChallenge
 
@@ -11,6 +12,6 @@ interface ChallengesDao {
     @Query("SELECT * FROM completedChallenges")
     fun getCompletedChallenges() : List<CompletedChallenge>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun addCompletedChallenges(challenges : List<CompletedChallenge>)
 }
