@@ -4,12 +4,11 @@ import android.content.Context
 import android.util.Log
 import com.example.codewarschallenge.api.ChallengesApi
 import com.example.codewarschallenge.db.dao.ChallengesDao
+import com.example.codewarschallenge.db.model.ChallengeDetails
 import com.example.codewarschallenge.db.model.CompletedChallenge
 import com.example.codewarschallenge.utils.ApiErrorUtils
 import com.example.codewarschallenge.utils.AppResult
 import com.example.codewarschallenge.utils.NetworkManager.isOnline
-import com.example.codewarschallenge.utils.ResponseHandler.handleApiError
-import com.example.codewarschallenge.utils.ResponseHandler.handleSuccess
 import com.example.codewarschallenge.utils.noNetworkConnectivityError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -46,12 +45,31 @@ class ChallengesRepositoryImp(
                 }
             }
             else -> {
-                return  context.noNetworkConnectivityError()
+                return context.noNetworkConnectivityError()
             }
         }
     }
 
     private suspend fun getCompletedChallengesFromDatabase(): List<CompletedChallenge>{
         return withContext(Dispatchers.IO) { dao.getCompletedChallenges() }
+    }
+
+    override suspend fun getChallengeDetails(id: String): AppResult<ChallengeDetails> {
+        return if(isOnline(context)){
+            try{
+                val response = api.getChallengeDetails(id)
+
+                if (response.isSuccessful){
+                    AppResult.Success(response.body()!!)
+                } else{
+                    AppResult.Error(Exception(ApiErrorUtils.parseError(response).message))
+                }
+            }
+            catch (e: Exception) {
+                AppResult.Error(e)
+            }
+        }else{
+            context.noNetworkConnectivityError()
+        }
     }
 }

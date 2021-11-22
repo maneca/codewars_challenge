@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/completedChallengesFragment"
-        android:name="com.example.codewarschallenge.fragments.CompletedChallengesFragment"
+        android:name="com.example.codewarschallenge.ui.fragments.CompletedChallengesFragment"
         android:label="CompletedChallengesFragment" >
         <action
             android:id="@+id/viewChallengeDetails"
@@ -14,6 +14,6 @@
     </fragment>
     <fragment
         android:id="@+id/challengeDetailsFragment"
-        android:name="com.example.codewarschallenge.fragments.ChallengeDetailsFragment"
+        android:name="com.example.codewarschallenge.ui.fragments.ChallengeDetailsFragment"
         android:label="ChallengeDetailsFragment" />
 </navigation>

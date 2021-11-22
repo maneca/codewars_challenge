@@ -6,4 +6,9 @@
     <string name="dismiss_button">OK</string>
     <string name="completed_at">Completed at:</string>
     <string name="completed_lang">Completed languages: </string>
+    <string name="challenge_details">Challenge Details</string>
+    <string name="category">Category</string>
+    <string name="description">Description</string>
+    <string name="languages">Languages</string>
+    <string name="tags">Tags</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.codewarschallenge.fragments
+package com.example.codewarschallenge.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -31,9 +31,9 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.codewarschallenge.R
 import com.example.codewarschallenge.db.model.CompletedChallenge
+import com.example.codewarschallenge.ui.widgets.TextBox
 import com.example.codewarschallenge.viewmodels.CompletedChallengesViewModel
 import com.example.codewarschallenge.viewmodels.PAGE_SIZE
-import com.google.accompanist.flowlayout.FlowRow
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class CompletedChallengesFragment : Fragment() {
@@ -156,26 +156,7 @@ class CompletedChallengesFragment : Fragment() {
                         Text(challenge.completedAt.split('T')[0])
                     }
                     Spacer(modifier = Modifier.size(6.dp))
-                    FlowRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(),
-                        mainAxisSpacing = 5.dp,
-                        crossAxisSpacing = 5.dp,
-                    ) {
-                        challenge.completedLanguages.forEach {
-                            Box(
-                                modifier = Modifier
-                                    .width(100.dp)
-                                    .wrapContentHeight()
-                                    .clip(RoundedCornerShape(5.dp))
-                                    .background(Color.Blue),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(color = White, text = it, modifier = Modifier.padding(6.dp))
-                            }
-                        }
-                    }
+                    TextBox(challenge.completedLanguages, Color.Blue)
                 }
             }
         }
