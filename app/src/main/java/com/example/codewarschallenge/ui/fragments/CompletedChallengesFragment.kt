@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,25 +13,22 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.codewarschallenge.R
 import com.example.codewarschallenge.db.model.CompletedChallenge
+import com.example.codewarschallenge.ui.widgets.ErrorDialog
+import com.example.codewarschallenge.ui.widgets.LoadingView
 import com.example.codewarschallenge.ui.widgets.TextBox
 import com.example.codewarschallenge.viewmodels.CompletedChallengesViewModel
 import com.example.codewarschallenge.viewmodels.PAGE_SIZE
@@ -52,36 +50,45 @@ class CompletedChallengesFragment : Fragment() {
                 loading = completedChallengesViewModel.showLoading.value
                 val error = completedChallengesViewModel.showError.value
                 page = completedChallengesViewModel.page.value
+                val warning = completedChallengesViewModel.showWarning.value
 
-                when {
-                    !error.isNullOrBlank() -> ErrorDialog(message = error)
-                    else ->
-                        Scaffold(topBar = {
-                            TopAppBar(
-                                title = { Text(text = stringResource(R.string.app_name)) }
+                Scaffold(topBar = {
+                    TopAppBar(
+                        title = { Text(text = stringResource(R.string.app_name)) }
+                    )
+                }) {
+                    if (loading) {
+                        LoadingView()
+                    }
+
+                    if (!error.isNullOrBlank()) {
+                        ErrorDialog(
+                            message = error,
+                            title = getString(R.string.error_title),
+                            dismissText = getString(R.string.dismiss_button)
+                        )
+                    }
+                    if (completedChallenges.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.nothing_to_show),
                             )
-                        }) {
-                            if (loading) {
-                                Dialog(
-                                    onDismissRequest = { },
-                                    DialogProperties(
-                                        dismissOnBackPress = false,
-                                        dismissOnClickOutside = false
-                                    )
-                                ) {
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier
-                                            .size(100.dp)
-                                            .background(White, shape = RoundedCornerShape(8.dp))
-                                    ) {
-                                        CircularProgressIndicator()
-                                    }
-                                }
-                            }
-                            CompleteChallengesList(completedChallenges)
                         }
+                    } else {
+                        CompleteChallengesList(completedChallenges)
+                    }
+                    if(!warning.isNullOrBlank()){
+                        Toast.makeText(
+                            context,
+                            warning,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
+
             }
         }
     }
@@ -160,32 +167,5 @@ class CompletedChallengesFragment : Fragment() {
                 }
             }
         }
-    }
-
-    @Composable
-    fun ErrorDialog(message: String) {
-        val openDialog = remember { mutableStateOf(true) }
-
-        AlertDialog(
-            onDismissRequest = {
-                openDialog.value = false
-            },
-            title = {
-                Text(text = getString(R.string.error_title))
-            },
-            text = {
-                Text(message)
-            },
-            confirmButton = {
-            },
-            dismissButton = {
-                Button(
-                    onClick = {
-                        openDialog.value = false
-                    }) {
-                    Text(getString(R.string.dismiss_button))
-                }
-            }
-        )
     }
 }

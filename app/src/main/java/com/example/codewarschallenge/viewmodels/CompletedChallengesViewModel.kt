@@ -17,6 +17,7 @@ class CompletedChallengesViewModel(private val repository : ChallengesRepository
     val showLoading = mutableStateOf(false)
     val completedChallenges : MutableState<List<CompletedChallenge>> = mutableStateOf(ArrayList())
     val showError = SingleLiveEvent<String?>()
+    val showWarning =  SingleLiveEvent<String?>()
 
     val page = mutableStateOf(1)
     var challengesScrollPosition = 0
@@ -25,11 +26,11 @@ class CompletedChallengesViewModel(private val repository : ChallengesRepository
         getCompletedChallenges(0)
     }
 
-    private fun getCompletedChallenges(page : Int, forceUpdate: Boolean = false) {
+    private fun getCompletedChallenges(page : Int) {
         showLoading.value = true
 
         viewModelScope.launch {
-            val result = repository.getCompletedChallenges(page, forceUpdate)
+            val result = repository.getCompletedChallenges(page)
 
             showLoading.value = false
             when(result){
@@ -38,17 +39,18 @@ class CompletedChallengesViewModel(private val repository : ChallengesRepository
                     showError.value = null
                 }
                 is AppResult.Error -> showError.value = result.exception.message
+                is AppResult.Warning -> showWarning.value = result.message
             }
         }
     }
 
     fun nextPage(){
         // prevent duplicates events due to recompose happening too fast
-        if(challengesScrollPosition >= ((page.value * PAGE_SIZE)-1)){
-            getCompletedChallenges(page.value, true)
+        //if(challengesScrollPosition >= ((page.value * PAGE_SIZE)-1)){
+            getCompletedChallenges(page.value)
             page.value = page.value+1
             Log.d("Codewars", "nextPage: triggered ${page.value}")
-        }
+        //}
     }
 
     // Append challenges to the current list

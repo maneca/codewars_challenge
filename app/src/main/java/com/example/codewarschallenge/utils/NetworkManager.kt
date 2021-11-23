@@ -33,6 +33,18 @@ object NetworkManager {
     }
 }
 
+fun Context.reachedTheEnd(): AppResult.Warning{
+    return AppResult.Warning(this.resources.getString(R.string.no_more_data))
+}
+
 fun Context.noNetworkConnectivityError(): AppResult.Error {
     return AppResult.Error(Exception(this.resources.getString(R.string.no_network_connectivity)))
+}
+
+fun Context.apiIsNotResponding(): AppResult.Error{
+    return AppResult.Error(Exception(this.resources.getString(R.string.api_not_responding)))
+}
+
+fun Context.unknownException(): AppResult.Error{
+    return AppResult.Error(Exception(this.resources.getString(R.string.something_went_wrong)))
 }

@@ -6,10 +6,8 @@ import com.example.codewarschallenge.api.ChallengesApi
 import com.example.codewarschallenge.db.dao.ChallengesDao
 import com.example.codewarschallenge.db.model.ChallengeDetails
 import com.example.codewarschallenge.db.model.CompletedChallenge
-import com.example.codewarschallenge.utils.ApiErrorUtils
-import com.example.codewarschallenge.utils.AppResult
+import com.example.codewarschallenge.utils.*
 import com.example.codewarschallenge.utils.NetworkManager.isOnline
-import com.example.codewarschallenge.utils.noNetworkConnectivityError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -19,13 +17,14 @@ class ChallengesRepositoryImp(
     private val dao : ChallengesDao
 ) : ChallengesRepository{
 
-    override suspend fun getCompletedChallenges(page: Int, forceUpdate : Boolean): AppResult<List<CompletedChallenge>> {
+    private var totalPages: Int = 0
+
+    override suspend fun getCompletedChallenges(page: Int): AppResult<List<CompletedChallenge>> {
         val dbValues = getCompletedChallengesFromDatabase()
 
         when {
-            dbValues.isNotEmpty() && !forceUpdate -> {
-                Log.d("Codewars", "from db")
-                return AppResult.Success(dbValues)
+            totalPages > 0 && page >= totalPages -> {
+                return context.reachedTheEnd()
             }
             isOnline(context) -> {
                 Log.d("Codewars", "from network")
@@ -34,15 +33,22 @@ class ChallengesRepositoryImp(
 
                     if (response.isSuccessful){
                         response.body()?.let {
+                            totalPages = it.totalPages
                             withContext(Dispatchers.IO) { dao.addCompletedChallenges(it.data)}
                         }
                         AppResult.Success(response.body()!!.data)
                     } else{
-                        AppResult.Error(Exception(ApiErrorUtils.parseError(response).message))
+                        Log.d("Codewars", ApiErrorUtils.parseError(response).message)
+                        context.apiIsNotResponding()
                     }
                 }catch (e: Exception) {
-                    AppResult.Error(e)
+                    e.message?.let { Log.d("Codewars", it) }
+                    context.unknownException()
                 }
+            }
+            dbValues.isNotEmpty() -> {
+                Log.d("Codewars", "from db")
+                return AppResult.Success(dbValues)
             }
             else -> {
                 return context.noNetworkConnectivityError()
@@ -62,11 +68,13 @@ class ChallengesRepositoryImp(
                 if (response.isSuccessful){
                     AppResult.Success(response.body()!!)
                 } else{
-                    AppResult.Error(Exception(ApiErrorUtils.parseError(response).message))
+                    Log.d("Codewars", ApiErrorUtils.parseError(response).message)
+                    context.apiIsNotResponding()
                 }
             }
             catch (e: Exception) {
-                AppResult.Error(e)
+                e.message?.let { Log.d("Codewars", it) }
+                context.unknownException()
             }
         }else{
             context.noNetworkConnectivityError()

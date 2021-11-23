@@ -10,7 +10,7 @@ data class ChallengeDetails(
     val languages: List<String> = listOf(),
     val tags: List<String> = listOf(),
     val rank: Rank? = null,
-    val createBy: User? = null,
+    val createdBy: User? = null,
     val approvedBy: User? = null,
     val totalAttempts: Int = 0,
     val totalCompleted: Int = 0,
