@@ -22,37 +22,38 @@ class ChallengesRepositoryImp(
     override suspend fun getCompletedChallenges(page: Int): AppResult<List<CompletedChallenge>> {
         val dbValues = getCompletedChallengesFromDatabase()
 
-        when {
-            totalPages > 0 && page >= totalPages -> {
+        if (isOnline(context)) {
+            // Fetch online
+            if (totalPages > 0 && page >= totalPages) {
+                // No more pages to get
                 return context.reachedTheEnd()
-            }
-            isOnline(context) -> {
+            } else {
                 Log.d("Codewars", "from network")
                 return try {
                     val response = api.getCompletedChallenges(page)
 
-                    if (response.isSuccessful){
+                    if (response.isSuccessful) {
                         response.body()?.let {
                             totalPages = it.totalPages
-                            withContext(Dispatchers.IO) { dao.addCompletedChallenges(it.data)}
+                            withContext(Dispatchers.IO) { dao.addCompletedChallenges(it.data) }
                         }
                         AppResult.Success(response.body()!!.data)
-                    } else{
+                    } else {
                         Log.d("Codewars", ApiErrorUtils.parseError(response).message)
                         context.apiIsNotResponding()
                     }
-                }catch (e: Exception) {
+                } catch (e: Exception) {
                     e.message?.let { Log.d("Codewars", it) }
                     context.unknownException()
                 }
             }
-            dbValues.isNotEmpty() -> {
-                Log.d("Codewars", "from db")
-                return AppResult.Success(dbValues)
-            }
-            else -> {
-                return context.noNetworkConnectivityError()
-            }
+        } else if (page == 0 && dbValues.isNotEmpty()) {
+            // fetch from the local database
+            Log.d("Codewars", "from db")
+            return AppResult.Success(dbValues)
+        } else {
+            // no network
+            return context.noNetworkConnectivityError()
         }
     }
 

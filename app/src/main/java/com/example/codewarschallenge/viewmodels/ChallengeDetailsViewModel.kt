@@ -12,19 +12,20 @@ import kotlinx.coroutines.launch
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 
-class ChallengeDetailsViewModel(private val id: String): ViewModel(), KoinComponent {
-
-    private val repository by inject<ChallengesRepository>()
+class ChallengeDetailsViewModel(
+    private val id: String,
+    private val repository: ChallengesRepository
+) : ViewModel() {
 
     val showLoading = mutableStateOf(false)
-    var challengeDetails : MutableState<ChallengeDetails> = mutableStateOf(ChallengeDetails())
+    var challengeDetails: MutableState<ChallengeDetails> = mutableStateOf(ChallengeDetails())
     val showError = SingleLiveEvent<String?>()
 
     init {
         getChallengeDetails()
     }
 
-    private fun getChallengeDetails(){
+    private fun getChallengeDetails() {
         showLoading.value = true
 
         viewModelScope.launch {

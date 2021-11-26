@@ -1,5 +1,10 @@
 package com.example.codewarschallenge.ui.fragments
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,11 +18,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +47,7 @@ class CompletedChallengesFragment : Fragment() {
     private val completedChallengesViewModel by viewModel<CompletedChallengesViewModel>()
     private var page: Int = 0
     private var loading: Boolean = false
+    private var canLoad: Boolean = true
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +61,20 @@ class CompletedChallengesFragment : Fragment() {
                 val error = completedChallengesViewModel.showError.value
                 page = completedChallengesViewModel.page.value
                 val warning = completedChallengesViewModel.showWarning.value
+
+                SystemBroadcastReceiver(WifiManager.WIFI_STATE_CHANGED_ACTION) { wifi_state ->
+                    when (wifi_state?.getIntExtra(
+                        WifiManager.EXTRA_WIFI_STATE,
+                        WifiManager.WIFI_STATE_UNKNOWN
+                    )) {
+                        WifiManager.WIFI_STATE_ENABLED -> {
+                            canLoad = true
+                        }
+                        WifiManager.WIFI_STATE_DISABLED -> {
+                            canLoad = false
+                        }
+                    }
+                }
 
                 Scaffold(topBar = {
                     TopAppBar(
@@ -101,10 +125,11 @@ class CompletedChallengesFragment : Fragment() {
                 .fillMaxWidth()
         ) {
             itemsIndexed(items = challenges) { index, challenge ->
-                completedChallengesViewModel.onChangeChallengesScrollPosition(index)
 
-                if (index >= ((page * PAGE_SIZE) - 1) && !loading) {
-                    completedChallengesViewModel.nextPage()
+                if (index > 0 && page > 0 && index >= ((page * PAGE_SIZE) - 1) && !loading) {
+                    if (canLoad) {
+                        completedChallengesViewModel.nextPage()
+                    }
                 }
                 Challenge(challenge = challenge)
             }
@@ -135,11 +160,10 @@ class CompletedChallengesFragment : Fragment() {
             ) {
                 Image(
                     painter = painterResource(R.drawable.champion),
-                    contentDescription = "Contact profile picture",
+                    contentDescription = "",
                     modifier = Modifier
                         // Set image size to 40 dp
                         .size(60.dp)
-                        // Clip image to be shaped as a circle
                         .clip(CircleShape)
                 )
                 Spacer(modifier = Modifier.size(4.dp))
@@ -157,6 +181,7 @@ class CompletedChallengesFragment : Fragment() {
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.calendar),
+                            modifier = Modifier.size(20.dp),
                             contentDescription = null // decorative element
                         )
                         Spacer(modifier = Modifier.size(4.dp))
@@ -165,6 +190,35 @@ class CompletedChallengesFragment : Fragment() {
                     Spacer(modifier = Modifier.size(6.dp))
                     TextBox(challenge.completedLanguages, Color.Blue)
                 }
+            }
+        }
+    }
+
+    @Composable
+    fun SystemBroadcastReceiver(
+        systemAction: String,
+        onSystemEvent: (intent: Intent?) -> Unit
+    ) {
+        // Grab the current context in this part of the UI tree
+        val context = LocalContext.current
+
+        // Safely use the latest onSystemEvent lambda passed to the function
+        val currentOnSystemEvent by rememberUpdatedState(onSystemEvent)
+
+        // If either context or systemAction changes, unregister and register again
+        DisposableEffect(context, systemAction) {
+            val intentFilter = IntentFilter(systemAction)
+            val broadcast = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    onSystemEvent(intent)
+                }
+            }
+
+            context.registerReceiver(broadcast, intentFilter)
+
+            // When the effect leaves the Composition, remove the callback
+            onDispose {
+                context.unregisterReceiver(broadcast)
             }
         }
     }

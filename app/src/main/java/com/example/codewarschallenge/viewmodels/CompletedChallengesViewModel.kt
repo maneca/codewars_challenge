@@ -19,48 +19,47 @@ class CompletedChallengesViewModel(private val repository : ChallengesRepository
     val showError = SingleLiveEvent<String?>()
     val showWarning =  SingleLiveEvent<String?>()
 
-    val page = mutableStateOf(1)
-    var challengesScrollPosition = 0
+    var page = mutableStateOf(1)
 
     init {
         getCompletedChallenges(0)
     }
 
-    private fun getCompletedChallenges(page : Int) {
+    private fun getCompletedChallenges(pageToLoad: Int) {
         showLoading.value = true
-
         viewModelScope.launch {
-            val result = repository.getCompletedChallenges(page)
+            val result = repository.getCompletedChallenges(pageToLoad)
 
             showLoading.value = false
-            when(result){
+            when (result) {
                 is AppResult.Success -> {
                     appendChallenges(result.successData)
+
+                    if (pageToLoad == 0) {
+                        page.value = result.successData.size / PAGE_SIZE
+                    }
                     showError.value = null
                 }
-                is AppResult.Error -> showError.value = result.exception.message
-                is AppResult.Warning -> showWarning.value = result.message
+                is AppResult.Error -> {
+                    showError.value = result.exception.message
+                }
+                is AppResult.Warning -> {
+                    showWarning.value = result.message
+                }
             }
         }
     }
 
-    fun nextPage(){
-        // prevent duplicates events due to recompose happening too fast
-        //if(challengesScrollPosition >= ((page.value * PAGE_SIZE)-1)){
-            getCompletedChallenges(page.value)
-            page.value = page.value+1
-            Log.d("Codewars", "nextPage: triggered ${page.value}")
-        //}
+    fun nextPage() {
+        getCompletedChallenges(page.value)
+        page.value = page.value + 1
+        Log.d("Codewars", "nextPage: triggered ${page.value}")
     }
 
     // Append challenges to the current list
     private fun appendChallenges(challenges: List<CompletedChallenge>){
         val current = ArrayList(completedChallenges.value)
         current.addAll(challenges)
-        completedChallenges.value = current
-    }
-
-    fun onChangeChallengesScrollPosition(position: Int){
-        challengesScrollPosition = position
+        completedChallenges.value = current.sortedByDescending { it.completedAt }
     }
 }

@@ -25,13 +25,16 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import com.example.codewarschallenge.R
 import com.example.codewarschallenge.db.model.ChallengeDetails
+import com.example.codewarschallenge.repository.ChallengesRepository
 import com.example.codewarschallenge.ui.widgets.ErrorDialog
 import com.example.codewarschallenge.ui.widgets.LoadingView
 import com.example.codewarschallenge.ui.widgets.TextBox
 import com.example.codewarschallenge.viewmodels.ChallengeDetailsViewModel
 import com.example.codewarschallenge.viewmodels.viewModelsFactory
+import org.koin.android.ext.android.inject
 
 
 class ChallengeDetailsFragment : Fragment() {
@@ -45,11 +48,13 @@ class ChallengeDetailsFragment : Fragment() {
         }
     }
 
+    private val repository by inject<ChallengesRepository>()
     private val challengeDetailsViewModel by viewModelsFactory {
         ChallengeDetailsViewModel(
             arguments?.getString(
                 "id"
-            )!!
+            )!!,
+            repository
         )
     }
 
@@ -69,7 +74,9 @@ class ChallengeDetailsFragment : Fragment() {
                     TopAppBar(
                         title = { Text(text = stringResource(R.string.challenge_details)) },
                         navigationIcon = {
-                            IconButton(onClick = { }) {
+                            IconButton(onClick = {
+                                findNavController().popBackStack()
+                            }) {
                                 Icon(Icons.Filled.ArrowBack, "")
                             }
                         }

@@ -12,5 +12,5 @@ data class CompletedChallenge(
     val name: String,
     val slug: String,
     val completedAt : String,
-    val completedLanguages : ArrayList<String>
+    val completedLanguages: List<String>
 ) : Parcelable

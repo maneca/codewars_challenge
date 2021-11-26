@@ -33,7 +33,7 @@ fun TextBox(elements: List<String>, color: Color, paddingStart: Dp = 0.dp) {
         elements.forEach {
             Box(
                 modifier = Modifier
-                    .width(100.dp)
+                    .wrapContentWidth()
                     .wrapContentHeight()
                     .clip(RoundedCornerShape(5.dp))
                     .background(color),
