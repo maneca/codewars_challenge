@@ -46,15 +46,16 @@ class ChallengeDetailsViewModelTest {
     @Before
     fun setup() {
         MockKAnnotations.init(this)
+        viewModel = ChallengeDetailsViewModel(mockRepo)
     }
 
     @Test
     fun `get challenge details, exception`() = runBlockingTest {
         assertNotNull(mockRepo)
         coEvery { mockRepo.getChallengeDetails(any()) } coAnswers { AppResult.Error(Exception("")) }
-        viewModel = ChallengeDetailsViewModel("challengeId", mockRepo)
 
-        assertEquals("", viewModel.showError.value)
+        viewModel.getChallengeDetails("challenge1")
+        assertNotNull(viewModel.showError)
     }
 
     @Test
@@ -65,9 +66,9 @@ class ChallengeDetailsViewModelTest {
                 challengeDetails
             )
         }
-        viewModel = ChallengeDetailsViewModel("challenge1", mockRepo)
+        viewModel.getChallengeDetails("challenge1")
 
-        assertEquals(challengeDetails.id, viewModel.challengeDetails.value.id)
-        assertEquals(challengeDetails.name, viewModel.challengeDetails.value.name)
+        assertEquals(challengeDetails.id, viewModel.challengeDetails.id)
+        assertEquals(challengeDetails.name, viewModel.challengeDetails.name)
     }
 }

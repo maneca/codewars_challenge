@@ -1,21 +1,23 @@
 package com.example.codewarschallenge.di
 
+import android.content.Context
 import com.example.codewarschallenge.R
+import com.example.codewarschallenge.api.NetworkInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import org.koin.dsl.module
-import java.util.concurrent.TimeUnit
 import org.koin.android.BuildConfig.DEBUG
 import org.koin.android.ext.koin.androidContext
+import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 val networkModule = module {
     val connectTimeout : Long = 40// 20s
     val readTimeout : Long  = 40 // 20s
 
-    fun provideHttpClient(): OkHttpClient {
+    fun provideHttpClient(context: Context): OkHttpClient {
         val okHttpClientBuilder = OkHttpClient.Builder()
             .connectTimeout(connectTimeout, TimeUnit.SECONDS)
             .readTimeout(readTimeout, TimeUnit.SECONDS)
@@ -25,6 +27,7 @@ val networkModule = module {
             }
             okHttpClientBuilder.addInterceptor(httpLoggingInterceptor)
         }
+        okHttpClientBuilder.addInterceptor(NetworkInterceptor(context))
         okHttpClientBuilder.build()
         return okHttpClientBuilder.build()
     }
@@ -38,7 +41,7 @@ val networkModule = module {
             .build()
     }
 
-    single { provideHttpClient() }
+    single { provideHttpClient(androidContext()) }
     single {
         val baseUrl = androidContext().getString(R.string.BASE_URL)
         provideRetrofit(get(), baseUrl)

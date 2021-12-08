@@ -1,13 +1,26 @@
-package com.example.codewarschallenge.utils
+package com.example.codewarschallenge.api
 
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.NetworkInfo
-import android.os.Build
-import com.example.codewarschallenge.R
+import com.example.codewarschallenge.utils.NoConnectivityException
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 
-object NetworkManager {
+class NetworkInterceptor(context: Context?) : Interceptor {
+
+    private var mContext: Context? = context
+
+    override fun intercept(chain: Interceptor.Chain): Response {
+        if (!isOnline(mContext)) {
+            throw NoConnectivityException()
+        }
+
+        val builder: Request.Builder = chain.request().newBuilder()
+        return chain.proceed(builder.build())
+    }
+
     fun isOnline(context: Context?): Boolean {
         var result = false
         val connectivityManager =
@@ -25,20 +38,4 @@ object NetworkManager {
         }
         return result
     }
-}
-
-fun Context.reachedTheEnd(): AppResult.Warning{
-    return AppResult.Warning(this.resources.getString(R.string.no_more_data))
-}
-
-fun Context.noNetworkConnectivityError(): AppResult.Error {
-    return AppResult.Error(Exception(this.resources.getString(R.string.no_network_connectivity)))
-}
-
-fun Context.apiIsNotResponding(): AppResult.Error{
-    return AppResult.Error(Exception(this.resources.getString(R.string.api_not_responding)))
-}
-
-fun Context.unknownException(): AppResult.Error{
-    return AppResult.Error(Exception(this.resources.getString(R.string.something_went_wrong)))
 }

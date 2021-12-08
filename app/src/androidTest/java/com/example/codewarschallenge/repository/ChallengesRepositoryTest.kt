@@ -1,22 +1,18 @@
 package com.example.codewarschallenge.repository
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.example.codewarschallenge.R
 import com.example.codewarschallenge.api.ApiResponse
 import com.example.codewarschallenge.api.ChallengesApi
 import com.example.codewarschallenge.db.dao.ChallengesDao
 import com.example.codewarschallenge.db.model.ChallengeDetails
-import com.example.codewarschallenge.db.model.CompletedChallenge
 import com.example.codewarschallenge.utils.AppResult
 import com.example.codewarschallenge.utils.challenge
 import com.example.codewarschallenge.utils.generateRandomString
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
@@ -63,73 +59,25 @@ class ChallengesRepositoryTest {
         coEvery { mockDao.getCompletedChallenges() } coAnswers { listOf() }
         coEvery { mockApi.getCompletedChallenges(0) } coAnswers { Response.success(apiResponse) }
 
-        repository = ChallengesRepositoryImp(mockApi, context, mockDao)
+        repository = ChallengesRepositoryImp(mockApi, mockDao)
         val result =
-            repository.getCompletedChallenges(0) as AppResult.Success<List<CompletedChallenge>>
+            repository.getCompletedChallenges(0) as AppResult.Success<ApiResponse?>
 
-        Assert.assertEquals(1, result.successData.size)
-        Assert.assertEquals(challenge.name, result.successData[0].name)
-    }
-
-    @Test
-    fun getWarningReachedEnd() = runBlocking {
-        Assert.assertNotNull(mockDao)
-        Assert.assertNotNull(mockApi)
-        val apiResponse = ApiResponse(totalItems = 1, totalPages = 1, data = listOf(challenge))
-        coEvery { mockApi.getCompletedChallenges(0) } coAnswers { Response.success(apiResponse) }
-        coEvery { mockDao.getCompletedChallenges() } coAnswers { listOf() }
-
-        repository = ChallengesRepositoryImp(mockApi, context, mockDao)
-        repository.getCompletedChallenges(0) as AppResult.Success<List<CompletedChallenge>>
-        every { mockContext.resources.getString(R.string.no_more_data) } returns context.resources.getString(
-            R.string.no_more_data
-        )
-
-        val result = repository.getCompletedChallenges(1) as AppResult.Warning
-
-        Assert.assertEquals(context.resources.getString(R.string.no_more_data), result.message)
-    }
-
-    @Test
-    fun noInternetConnection() = runBlocking {
-        Assert.assertNotNull(mockDao)
-        coEvery { mockDao.getCompletedChallenges() } coAnswers { listOf() }
-        val mockConnectivityManager = mockk<ConnectivityManager>()
-        every { mockContext.getSystemService("connectivity") as ConnectivityManager? } returns mockConnectivityManager
-        val mockNetwork = mockk<Network>()
-        every { mockConnectivityManager.activeNetwork } returns mockNetwork
-        val mockNetworkCapabilities = mockk<NetworkCapabilities>(relaxed = true)
-        every { mockConnectivityManager.getNetworkCapabilities(mockNetwork) } returns mockNetworkCapabilities
-        every { mockContext.resources.getString(R.string.no_network_connectivity) } returns context.resources.getString(
-            R.string.no_network_connectivity
-        )
-
-        repository = ChallengesRepositoryImp(mockApi, mockContext, mockDao)
-        val result = repository.getCompletedChallenges(0) as AppResult.Error
-
-        Assert.assertEquals(
-            context.resources.getString(R.string.no_network_connectivity),
-            result.message
-        )
+        Assert.assertEquals(1, result.successData!!.data.size)
+        Assert.assertEquals(challenge.name, result.successData!!.data[0].name)
     }
 
     @Test
     fun getCompleteChallengesFromDatabase() = runBlocking {
         Assert.assertNotNull(mockDao)
         coEvery { mockDao.getCompletedChallenges() } coAnswers { listOf(challenge) }
-        val mockConnectivityManager = mockk<ConnectivityManager>()
-        every { mockContext.getSystemService("connectivity") as ConnectivityManager? } returns mockConnectivityManager
-        val mockNetwork = mockk<Network>()
-        every { mockConnectivityManager.activeNetwork } returns mockNetwork
-        val mockNetworkCapabilities = mockk<NetworkCapabilities>(relaxed = true)
-        every { mockConnectivityManager.getNetworkCapabilities(mockNetwork) } returns mockNetworkCapabilities
 
-        repository = ChallengesRepositoryImp(mockApi, mockContext, mockDao)
+        repository = ChallengesRepositoryImp(mockApi, mockDao)
         val result =
-            repository.getCompletedChallenges(0) as AppResult.Success<List<CompletedChallenge>>
+            repository.getCompletedChallenges(0) as AppResult.Success<ApiResponse?>
 
-        Assert.assertEquals(1, result.successData.size)
-        Assert.assertEquals(challenge.name, result.successData[0].name)
+        Assert.assertEquals(1, result.successData!!.data.size)
+        Assert.assertEquals(challenge.name, result.successData!!.data[0].name)
 
     }
 
@@ -142,7 +90,7 @@ class ChallengesRepositoryTest {
             )
         }
 
-        repository = ChallengesRepositoryImp(mockApi, context, mockDao)
+        repository = ChallengesRepositoryImp(mockApi, mockDao)
         val result =
             repository.getChallengeDetails("challenge") as AppResult.Success<ChallengeDetails>
 

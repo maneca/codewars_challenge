@@ -28,13 +28,11 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.example.codewarschallenge.R
 import com.example.codewarschallenge.db.model.ChallengeDetails
-import com.example.codewarschallenge.repository.ChallengesRepository
 import com.example.codewarschallenge.ui.widgets.ErrorDialog
 import com.example.codewarschallenge.ui.widgets.LoadingView
 import com.example.codewarschallenge.ui.widgets.TextBox
 import com.example.codewarschallenge.viewmodels.ChallengeDetailsViewModel
-import com.example.codewarschallenge.viewmodels.viewModelsFactory
-import org.koin.android.ext.android.inject
+import org.koin.android.viewmodel.ext.android.viewModel
 
 
 class ChallengeDetailsFragment : Fragment() {
@@ -48,15 +46,7 @@ class ChallengeDetailsFragment : Fragment() {
         }
     }
 
-    private val repository by inject<ChallengesRepository>()
-    private val challengeDetailsViewModel by viewModelsFactory {
-        ChallengeDetailsViewModel(
-            arguments?.getString(
-                "id"
-            )!!,
-            repository
-        )
-    }
+    private val challengeDetailsViewModel by viewModel<ChallengeDetailsViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,11 +54,15 @@ class ChallengeDetailsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
+        if (arguments?.getString("id") != null) {
+            challengeDetailsViewModel.getChallengeDetails(arguments?.getString("id")!!)
+        }
+
         return ComposeView(requireContext()).apply {
             setContent {
-                val challengeDetails = challengeDetailsViewModel.challengeDetails.value
-                val loading = challengeDetailsViewModel.showLoading.value
-                val error = challengeDetailsViewModel.showError.value
+                val challengeDetails = challengeDetailsViewModel.challengeDetails
+                val loading = challengeDetailsViewModel.showLoading
+                val error = challengeDetailsViewModel.showError
 
                 Scaffold(topBar = {
                     TopAppBar(
@@ -85,9 +79,9 @@ class ChallengeDetailsFragment : Fragment() {
                     if (loading) {
                         LoadingView()
                     }
-                    if (!error.isNullOrBlank()) {
+                    if (error != null) {
                         ErrorDialog(
-                            message = error,
+                            message = getString(error),
                             title = getString(R.string.error_title),
                             dismissText = getString(R.string.dismiss_button)
                         )

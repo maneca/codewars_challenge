@@ -1,18 +1,16 @@
 package com.example.codewarschallenge.di
 
-import android.content.Context
 import com.example.codewarschallenge.api.ChallengesApi
 import com.example.codewarschallenge.db.dao.ChallengesDao
 import com.example.codewarschallenge.repository.ChallengesRepository
 import com.example.codewarschallenge.repository.ChallengesRepositoryImp
-import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val repositoryModule = module {
 
-    fun provideChallengesRepository(api: ChallengesApi, context: Context, dao: ChallengesDao): ChallengesRepository {
-        return ChallengesRepositoryImp(api, context, dao)
+    fun provideChallengesRepository(api: ChallengesApi, dao: ChallengesDao): ChallengesRepository {
+        return ChallengesRepositoryImp(api, dao)
     }
 
-    single { provideChallengesRepository(get(), androidContext(), get()) }
+    single { provideChallengesRepository(get(), get()) }
 }

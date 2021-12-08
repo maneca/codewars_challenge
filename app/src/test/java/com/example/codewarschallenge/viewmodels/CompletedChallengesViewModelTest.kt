@@ -1,6 +1,7 @@
 package com.example.codewarschallenge.viewmodels
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.example.codewarschallenge.api.ApiResponse
 import com.example.codewarschallenge.db.model.CompletedChallenge
 import com.example.codewarschallenge.repository.ChallengesRepository
 import com.example.codewarschallenge.utils.AppResult
@@ -53,37 +54,35 @@ class CompletedChallengesViewModelTest {
             viewModel.javaClass.getDeclaredMethod("getCompletedChallenges", Int::class.java)
         method.isAccessible = true
 
-        assertNotNull(viewModel.showError.value)
-        assertEquals(0, viewModel.completedChallenges.value.size)
+        assertNotNull(viewModel.showError)
+        assertEquals(0, viewModel.completedChallenges.size)
     }
 
     @Test
     fun `get all completed challenges, successful`() = runBlockingTest {
 
         assertNotNull(mockRepo)
-        coEvery { mockRepo.getCompletedChallenges(0) } returns AppResult.Success(listOf(challenge))
+        val apiResponse = ApiResponse(1, 1, listOf(challenge))
+        coEvery { mockRepo.getCompletedChallenges(0) } coAnswers { AppResult.Success(apiResponse) }
         viewModel = CompletedChallengesViewModel(mockRepo)
-        val method =
-            viewModel.javaClass.getDeclaredMethod("getCompletedChallenges", Int::class.java)
-        method.isAccessible = true
 
-        assertEquals(1, viewModel.completedChallenges.value.size)
-        assertEquals(challenge.name, viewModel.completedChallenges.value[0].name)
+        assertEquals(1, viewModel.completedChallenges.size)
+        assertEquals(challenge.name, viewModel.completedChallenges[0].name)
     }
 
     @Test
     fun `get all completed challenges, reached end`() = runBlockingTest {
 
         assertNotNull(mockRepo)
-        coEvery { mockRepo.getCompletedChallenges(0) } returns AppResult.Warning("Reached the end")
+        val apiResponse = ApiResponse(0, 1, listOf(challenge))
+        coEvery { mockRepo.getCompletedChallenges(0) } coAnswers { AppResult.Success(apiResponse) }
         viewModel = CompletedChallengesViewModel(mockRepo)
-        val method =
-            viewModel.javaClass.getDeclaredMethod("getCompletedChallenges", Int::class.java)
-        method.isAccessible = true
 
-        assertEquals("Reached the end", viewModel.showWarning.value)
-        assertNull(viewModel.showError.value)
-        assertEquals(0, viewModel.completedChallenges.value.size)
+        viewModel.nextPage()
+        viewModel.nextPage()
+
+        assertNotNull(viewModel.showWarning)
+        assertNull(viewModel.showError)
     }
 
 }

@@ -10,7 +10,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -56,11 +58,11 @@ class CompletedChallengesFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                val completedChallenges = completedChallengesViewModel.completedChallenges.value
-                loading = completedChallengesViewModel.showLoading.value
-                val error = completedChallengesViewModel.showError.value
-                page = completedChallengesViewModel.page.value
-                val warning = completedChallengesViewModel.showWarning.value
+                val completedChallenges = completedChallengesViewModel.completedChallenges
+                loading = completedChallengesViewModel.showLoading
+                val error = completedChallengesViewModel.showError
+                page = completedChallengesViewModel.page
+                val warning = completedChallengesViewModel.showWarning
 
                 SystemBroadcastReceiver(WifiManager.WIFI_STATE_CHANGED_ACTION) { wifi_state ->
                     when (wifi_state?.getIntExtra(
@@ -85,9 +87,9 @@ class CompletedChallengesFragment : Fragment() {
                         LoadingView()
                     }
 
-                    if (!error.isNullOrBlank()) {
+                    if (error != null) {
                         ErrorDialog(
-                            message = error,
+                            message = stringResource(error),
                             title = getString(R.string.error_title),
                             dismissText = getString(R.string.dismiss_button)
                         )
@@ -104,7 +106,7 @@ class CompletedChallengesFragment : Fragment() {
                     } else {
                         CompleteChallengesList(completedChallenges)
                     }
-                    if(!warning.isNullOrBlank()){
+                    if (warning != null) {
                         Toast.makeText(
                             context,
                             warning,
