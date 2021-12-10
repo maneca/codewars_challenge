@@ -1,8 +1,10 @@
 package com.example.codewarschallenge.utils
 
+import okio.IOException
 
-class NoConnectivityException : Exception()
 
-class UnknownException : Exception()
+class NoConnectivityException : IOException()
 
-class ApiNotResponding : Exception()
+class UnknownException : IOException()
+
+class ApiNotResponding : IOException()
